@@ -3,7 +3,7 @@
 * Purpose : Contains functions related to the list.
 * Creation Date : 27-02-2012
 * Last Modified : Tue 06 Mar 2012 09:43:18 PM EST
-* Created By :  Calvin Nichols  
+* Created By :  Calvin Nichols
 * Reference: http://www.c.happycodings.com/Data_Structures/code5.html
 ********************************************/
 
@@ -34,7 +34,7 @@ int list_size(struct command *L){
         L=L->next;
     }
     return L->position;
-    
+
 return -1;
 }
 
@@ -63,20 +63,20 @@ void add_command(struct command *L){
 
 void insert_arg(struct command *L, char *token){
     int size, check;
-    
+
     //most current command
     while(L->next != NULL){
         L = L->next;
     }
-    
+
     size = strlen(token);
     L->argv[L->argc] = calloc(size+1, sizeof(char));
     strcpy(L->argv[L->argc], token);
-    strncat(L->argv[L->argc], "\0", 1);
+    //strncat(L->argv[L->argc], "\0", 1);
 
     if (L->argc == 0){
         size = strlen(L->argv[L->argc]);
-        L->cmd = calloc(size, sizeof(char));
+        L->cmd = calloc(size+1, sizeof(char));
         strcpy(L->cmd, L->argv[L->argc]);
     }
 
@@ -87,7 +87,7 @@ void free_proclist(struct command *L) {
     int i;
     struct command *temp;
     temp = (struct command *)malloc(sizeof(struct command));
-    
+
     while(L->next != NULL){
         temp = L->next;
         for (i=0; i<L->argc+1; i++)
@@ -106,7 +106,7 @@ void free_proclist(struct command *L) {
     free(L->infile);
     free(L->outfile);
     free(L);
-    
+
     L = NULL;
 }
 
@@ -120,7 +120,7 @@ int identify_token(char *token){
         return 1;
     else if (strcmp(token,"^") == 0)
         return 2;
-    else if (strcmp(token,"$") == 0)    
+    else if (strcmp(token,"$") == 0)
         return 3;
     else if (strcmp(token,"!") == 0)
         return 4;
@@ -147,11 +147,11 @@ int *parse_cmdline(struct command *L, char *cmdLine){
     char identifier[4];
     lCopy = L;
     token = strtok(cmdLine, " ");
-    
+
     while (token != NULL){
 
         intSelect = identify_token(token);
-        
+
         //if intSelect = 1,2,3,4 or 5 discard identifier token
         if (intSelect == 1 || intSelect == 2 || intSelect == 3 || intSelect == 4 || intSelect == 5){
             strcpy(identifier, token);
@@ -161,38 +161,38 @@ int *parse_cmdline(struct command *L, char *cmdLine){
             token = strtok(NULL, " ");
             jobGroup = token[0] - 48;
         }
-        
-        switch(intSelect){    
+
+        switch(intSelect){
             case 1: /*pipe*/
-                
+
                 if (identify_token(token) != 0){
                     printf("error: expected argument after '%s'\n", identifier);
                     exit(126);
                 }
-                
+
                 add_command(L);
 
                 while(L->next != NULL){
                     previousCmd = L;
                     L = L->next;
                 }
-                
+
                 previousCmd->pipe = 1;
 
                 currentCmd++;
             break;
-            
+
             case 2: /*infile*/
                 i=0;
-                
+
                 if (identify_token(token) != 0){
                     printf("error: expected argument after '%s'\n", identifier);
                     exit(126);
                 }
-                
+
                 while (L->next != NULL){
                     L = L->next;
-                    i++; 
+                    i++;
                 }
                 if (i != currentCmd){
                     perror("infile");
@@ -204,30 +204,30 @@ int *parse_cmdline(struct command *L, char *cmdLine){
                 strncat(L->infile, "\0", 1);
                 token = strtok(NULL, " ");
             break;
-            
+
             case 3: /*outfile*/
                 i=0;
-                
+
                 if (identify_token(token) != 0){
                     printf("error: expected argument after '%s'\n", identifier);
                     exit(126);
                 }
-                
+
                 while (L->next != NULL){
                     L = L->next;
-                    i++; 
+                    i++;
                 }
                 if (i != currentCmd){
                     perror("outfile");
                     exit(126);
-                }              
+                }
                 size = strlen(token);
                 L->outfile = calloc(size+1, sizeof(char));
                 strcpy(L->outfile, token);
                 strncat(L->outfile, "\0", 1);
                 token = strtok(NULL, " ");
             break;
-            
+
             case 4: /*background process*/
                 i=0;
 
@@ -238,7 +238,7 @@ int *parse_cmdline(struct command *L, char *cmdLine){
 
                 while (L->next != NULL){
                     L = L->next;
-                    i++; 
+                    i++;
                 }
                 if (i != currentCmd){
                     perror("background");
@@ -246,18 +246,18 @@ int *parse_cmdline(struct command *L, char *cmdLine){
                 }
                 L->background = 1;
             break;
-            
+
             case 5: /*efficiency*/
                 i=0;
-                
+
                 if (identify_token(token) != 0){
                     printf("error: expected argument after '%s'\n", identifier);
                     exit(126);
                 }
-                
+
                 while (L->next != NULL){
                     L = L->next;
-                    i++; 
+                    i++;
                 }
                 if (i != currentCmd){
                     perror("efficiency");
@@ -266,40 +266,40 @@ int *parse_cmdline(struct command *L, char *cmdLine){
                 L->pcpu = atoi(token);
                 token = strtok(NULL, " ");
             break;
-            
+
             case 6: /*set job control directive*/
                 jobGroup = token[1] - 48;
                 //printf("group: %d\n\n\n", jobGroup);
                 token = strtok(NULL, " ");
                 //all tokens from now on need to be job group 7
             break;
-            
+
             case 7: /*enforce directive command*/ //jkill
                 groupD[0] = 7;
                 groupD[1] = jobGroup;
                 return groupD;
-            
+
             case 8: //jstop
                 groupD[0] = 8;
                 groupD[1] = jobGroup;
                 return groupD;
-                
+
             case 9: //jcont
                 groupD[0] = 9;
                 groupD[1] = jobGroup;
                 return groupD;
-            
+
             default: /*add arguement to current command*/ //not getting here after pipe
-            
+
                 if (identify_token(token) != 0){
                     printf("error: identifier '%s' caught but not handled\n", identifier);
                     exit(126);
                 }
-                
+
                 insert_arg(L, token);
                 token = strtok(NULL, " ");
             break;
-            
+
         }
         L = lCopy;
     }
@@ -321,7 +321,7 @@ void print_list(struct command *L){
         printf("\n");
         for (i=0; i<L->argc+1; i++)
             printf("argv: %s \n",L->argv[i]);
-    
+
         printf("cmd: %s\n", L->cmd);
         printf("argc: %d\n", L->argc);
         printf("pcpu: %d\n", L->pcpu);
@@ -332,13 +332,13 @@ void print_list(struct command *L){
         printf("group: %d\n", L->group);
         printf("pid: %d\n", L->pid);
         printf("pos: %d\n", L->position);
-        
+
         L = L->next;
     }
     printf("\n");
     for (i=0; i<L->argc+1; i++)
             printf("argv: %s \n",L->argv[i]);
-    
+
     printf("cmd: %s\n", L->cmd);
     printf("argc: %d\n", L->argc);
     printf("pcpu: %d\n", L->pcpu);
